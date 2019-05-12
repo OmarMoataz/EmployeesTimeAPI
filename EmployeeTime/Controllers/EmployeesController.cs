@@ -7,10 +7,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using EmployeeTime.Models;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace EmployeeTime.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/{search?}/{filter?}/{orderby?}/{top?}/{skip?}/{count?}")]
     [ApiController]
     public class EmployeesController : ControllerBase
     {
@@ -23,11 +24,11 @@ namespace EmployeeTime.Controllers
 
         // GET: api/Employee
         [HttpGet]
-        //[Route("{top:int:min(1)}/{skip:int:min(1)}/{count:int:min(1)}")]
-        public string Get(string search, string filter, string orderby, int? top, int? skip, int? count)
+        public string Get(string search, string filter, string orderby, int? top, int? skip, int? count, [FromHeader] string APIKey)
         {
             using (var client = _clientFactory.CreateClient("SapBusinessHub"))
             {
+                //client.DefaultRequestHeaders.Add("APIKey", APIKey);
                 var response = client.GetAsync(client.BaseAddress + "/EmployeeTime").Result;
 
                 if (response.IsSuccessStatusCode)
@@ -36,8 +37,13 @@ namespace EmployeeTime.Controllers
                     string responseString = responseContent.ReadAsStringAsync().Result;
                     return responseString;
                 }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+                {
+                    Log.Error("User tried to access API without valid token");
+                    return "You need a valid API token to access Timesheet data.";
+                }
             }
-            return "Error";
+            return "Something went wrong.";
         }
     }
 }
