@@ -5,6 +5,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using EmployeeTime.Models;
+using Newtonsoft.Json;
 
 namespace EmployeeTime.Controllers
 {
@@ -21,10 +23,20 @@ namespace EmployeeTime.Controllers
 
         // GET: api/Employee
         [HttpGet]
-        public IEnumerable<string> Get()
+        public string Get()
         {
-            var client = _clientFactory.CreateClient();
-            return new string[] { "value2", "value2" };
+            using (var client = _clientFactory.CreateClient("SapBusinessHub"))
+            {
+                var response = client.GetAsync(client.BaseAddress + "/EmployeeTime").Result;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = response.Content;
+                    string responseString = responseContent.ReadAsStringAsync().Result;
+                    return responseString;
+                }
+            }
+            return "Error";
         }
 
         // GET: api/Employee/5
@@ -32,24 +44,6 @@ namespace EmployeeTime.Controllers
         public string Get(int id)
         {
             return "value";
-        }
-
-        // POST: api/Employee
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT: api/Employee/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
         }
     }
 }

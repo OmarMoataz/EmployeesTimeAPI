@@ -26,7 +26,12 @@ namespace EmployeeTime
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            services.AddHttpClient();
+            services.AddHttpClient("SapBusinessHub", c =>
+            {
+                c.BaseAddress = new Uri("https://sandbox.api.sap.com/successfactors/odata/v2");
+                c.DefaultRequestHeaders.Add("Accept", "application/json");
+                c.DefaultRequestHeaders.Add("APIKey", "mM5SGV3gkgwZcE5rrVpAH9XPQVAXkbUo");
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
