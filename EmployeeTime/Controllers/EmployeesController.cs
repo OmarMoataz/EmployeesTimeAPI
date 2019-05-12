@@ -23,7 +23,8 @@ namespace EmployeeTime.Controllers
 
         // GET: api/Employee
         [HttpGet]
-        public string Get()
+        //[Route("{top:int:min(1)}/{skip:int:min(1)}/{count:int:min(1)}")]
+        public string Get(string search, string filter, string orderby, int? top, int? skip, int? count)
         {
             using (var client = _clientFactory.CreateClient("SapBusinessHub"))
             {
@@ -37,13 +38,6 @@ namespace EmployeeTime.Controllers
                 }
             }
             return "Error";
-        }
-
-        // GET: api/Employee/5
-        [HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
-        {
-            return "value";
         }
     }
 }
