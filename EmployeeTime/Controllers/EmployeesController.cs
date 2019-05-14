@@ -28,7 +28,7 @@ namespace EmployeeTime.Controllers
 
         // GET: api/Employee
         [HttpGet]
-        public string Get([FromHeader] string APIKey, string search, string filter, string orderby, int? top, int? skip, bool? count, int? id = null)
+        public string Get([FromHeader] string APIKey, string search, string filter, string orderby, int? top, int? skip, bool? count, int? id)
         {
             using (var client = _clientFactory.CreateClient("SapBusinessHub"))
             {
