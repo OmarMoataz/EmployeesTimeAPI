@@ -9,6 +9,7 @@ using EmployeeTime.Models;
 using Newtonsoft.Json;
 using Serilog;
 using System.Text;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace EmployeeTime.Controllers
 {
@@ -27,14 +28,15 @@ namespace EmployeeTime.Controllers
 
         // GET: api/Employee
         [HttpGet]
-        public string Get([FromHeader] string APIKey, string search, string filter, string orderby, int? top, int? skip, int? count, int? id = null)
+        public string Get([FromHeader] string APIKey, string search, string filter, string orderby, int? top, int? skip, bool? count, int? id = null)
         {
             using (var client = _clientFactory.CreateClient("SapBusinessHub"))
             {
                 client.DefaultRequestHeaders.Add("APIKey", APIKey);
-                StringBuilder buildUri = new StringBuilder(client.BaseAddress + $"/EmployeeTime({id})");
                 string uri = client.BaseAddress + $"/EmployeeTime({id})";
-                var response = client.GetAsync(client.BaseAddress + $"/EmployeeTime({id})").Result;
+                uri += Request.QueryString;
+
+                var response = client.GetAsync(uri).Result;
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = response.Content;
