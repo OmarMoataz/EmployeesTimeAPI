@@ -10,9 +10,11 @@ using Newtonsoft.Json;
 using Serilog;
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Newtonsoft.Json.Linq;
 
 namespace EmployeeTime.Controllers
 {
+    [Produces("application/json")]
     [Route("api/[controller]")]
     [ApiController]
     public class EmployeesController : ControllerBase
@@ -28,12 +30,11 @@ namespace EmployeeTime.Controllers
 
         // GET: api/Employee
         [HttpGet]
-        public string Get([FromHeader] string APIKey, string search, string filter, string orderby, int? top, int? skip, bool? count, int? id)
+        public string Get(int? externalCode)
         {
             using (var client = _clientFactory.CreateClient("SapBusinessHub"))
             {
-                client.DefaultRequestHeaders.Add("APIKey", APIKey);
-                string uri = client.BaseAddress + $"/EmployeeTime({id})";
+                string uri = client.BaseAddress + $"/EmployeeTime({externalCode})";
                 uri += Request.QueryString;
 
                 var response = client.GetAsync(uri).Result;
@@ -41,15 +42,15 @@ namespace EmployeeTime.Controllers
                 {
                     var responseContent = response.Content;
                     string responseString = responseContent.ReadAsStringAsync().Result;
-                    return responseString;
+                    return JsonConvert.SerializeObject((JsonConvert.DeserializeObject<IEnumerable<Result>>(responseString)));
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
-                    Log.Information("User tried to access API without valid token");
-                    return "You need a valid API token to access Timesheet data.";
+                    Log.Error("User tried to access API without valid token.");
+                    return JsonConvert.SerializeObject("You need a valid API token to access Timesheet data.");
                 }
             }
-            return "Something went wrong.";
+            return JsonConvert.SerializeObject("Something went wrong.");
         }
     }
 }
