@@ -1,56 +1,66 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using System.Net.Http;
 using Microsoft.AspNetCore.Mvc;
 using EmployeeTime.Models;
 using Newtonsoft.Json;
 using Serilog;
-using System.Text;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Newtonsoft.Json.Linq;
 
 namespace EmployeeTime.Controllers
 {
     [Produces("application/json")]
     [Route("api/[controller]")]
     [ApiController]
-    public class EmployeesController : ControllerBase
+    public class EmployeesController : ControllerBase, IActionFilter
     {
         private readonly IHttpClientFactory _clientFactory;
         private readonly string[] _validParameters;
+        private bool _IdQueryFound;
 
         public EmployeesController(IHttpClientFactory clientFactory)
         {
             _clientFactory = clientFactory;
-            _validParameters = new string[] { "id", "search", "filter", "orderby", "top", "skip", "count" };
+            _validParameters = new string[] { "search", "filter", "orderby", "top", "skip", "count" };
         }
 
         // GET: api/Employee
         [HttpGet]
-        public string Get(int? externalCode)
+        public IActionResult Get(int? externalCode)
         {
+            if (!_IdQueryFound)
+                return BadRequest(new Error("UserId query not found", "404"));
             using (var client = _clientFactory.CreateClient("SapBusinessHub"))
             {
                 string uri = client.BaseAddress + $"/EmployeeTime({externalCode})";
                 uri += Request.QueryString;
-
                 var response = client.GetAsync(uri).Result;
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = response.Content;
                     string responseString = responseContent.ReadAsStringAsync().Result;
-                    return JsonConvert.SerializeObject((JsonConvert.DeserializeObject<IEnumerable<Result>>(responseString)));
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                {
-                    Log.Error("User tried to access API without valid token.");
-                    return JsonConvert.SerializeObject("You need a valid API token to access Timesheet data.");
+                    RootObject JSONWrapper = JsonConvert.DeserializeObject <RootObject>(responseString);
+                    return Ok(JSONWrapper.TimeSheetWrapper);
                 }
             }
-            return JsonConvert.SerializeObject("Something went wrong.");
+            return BadRequest(new Error("Something went wrong"));
+        }
+
+        public void OnActionExecuted(ActionExecutedContext context)
+        {
+            return;
+        }
+
+        public void OnActionExecuting(ActionExecutingContext context)
+        {
+            string[] Pairs = Request.QueryString.Value.Split("&");
+            _IdQueryFound = false;
+            for (int i = 0; i < Pairs.Length; i++)
+            {
+                if (Pairs[i].Contains("$filter=userId%20eq"))
+                {
+                    _IdQueryFound = true;
+                    break;
+                }
+            }
         }
     }
 }

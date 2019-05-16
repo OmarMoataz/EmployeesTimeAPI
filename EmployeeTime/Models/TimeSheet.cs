@@ -173,15 +173,15 @@ namespace EmployeeTime.Models
         public Deferred16 __deferred { get; set; }
     }
 
-    public class Result
+    public class TimeSheet
     {
         public Metadata __metadata { get; set; }
         public string externalCode { get; set; }
         public string quantityInDays { get; set; }
         public string mdfSystemObjectType { get; set; }
         public object cancellationWorkflowRequestId { get; set; }
-        public DateTime endDate { get; set; }
-        public DateTime lastModifiedDateTime { get; set; }
+        public DateTime? endDate { get; set; }
+        public DateTime? lastModifiedDateTime { get; set; }
         public object endTime { get; set; }
         public string timeType { get; set; }
         public object cust_deliverytype { get; set; }
@@ -193,20 +193,20 @@ namespace EmployeeTime.Models
         public string approvalStatus { get; set; }
         public string mdfSystemStatus { get; set; }
         public object cust_expectedweek { get; set; }
-        public DateTime createdDate { get; set; }
-        public bool undeterminedEndDate { get; set; }
+        public DateTime? createdDate { get; set; }
+        public bool? undeterminedEndDate { get; set; }
         public string mdfSystemRecordStatus { get; set; }
-        public bool workflowInitiatedByAdmin { get; set; }
-        public bool editable { get; set; }
+        public bool? workflowInitiatedByAdmin { get; set; }
+        public bool? editable { get; set; }
         public string createdBy { get; set; }
-        public DateTime createdDateTime { get; set; }
+        public DateTime? createdDateTime { get; set; }
         public string lastModifiedBy { get; set; }
         public object loaExpectedReturnDate { get; set; }
-        public DateTime mdfSystemEffectiveStartDate { get; set; }
+        public DateTime? mdfSystemEffectiveStartDate { get; set; }
         public object comment { get; set; }
         public object loaStartJobInfoId { get; set; }
-        public DateTime startDate { get; set; }
-        public DateTime mdfSystemEffectiveEndDate { get; set; }
+        public DateTime? startDate { get; set; }
+        public DateTime? mdfSystemEffectiveEndDate { get; set; }
         public object mdfSystemVersionId { get; set; }
         public object recurrenceGroup { get; set; }
         public string mdfSystemTransactionSequence { get; set; }
@@ -214,13 +214,13 @@ namespace EmployeeTime.Models
         public object workflowRequestId { get; set; }
         public string displayQuantity { get; set; }
         public object loaActualReturnDate { get; set; }
-        public DateTime lastModifiedDateWithTZ { get; set; }
+        public DateTime? lastModifiedDateWithTZ { get; set; }
         public string quantityInHours { get; set; }
-        public bool flexibleRequesting { get; set; }
+        public bool? flexibleRequesting { get; set; }
         public string deductionQuantity { get; set; }
         public object loaEndJobInfoId { get; set; }
         public string originalQuantityInDays { get; set; }
-        public DateTime lastModifiedDate { get; set; }
+        public DateTime? lastModifiedDate { get; set; }
         public object cust_notificationdate { get; set; }
         public CountryExtensionCOL countryExtensionCOL { get; set; }
         public RecurrenceGroupNav recurrenceGroupNav { get; set; }
@@ -239,14 +239,16 @@ namespace EmployeeTime.Models
         public MdfSystemRecordStatusNav mdfSystemRecordStatusNav { get; set; }
         public UserIdNav userIdNav { get; set; }
     }
-
-    public class D
+    
+    public class TimeSheetWrapper
     {
-        public List<Result> results { get; set; }
+        [JsonProperty("results")]
+        public List<TimeSheet> TimeSheetList { get; set; }
     }
 
     public class RootObject
     {
-        public D d { get; set; }
+        [JsonProperty("d")]
+        public TimeSheetWrapper TimeSheetWrapper { get; set; }
     }
 }
