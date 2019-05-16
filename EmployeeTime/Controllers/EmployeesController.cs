@@ -4,6 +4,8 @@ using EmployeeTime.Models;
 using Newtonsoft.Json;
 using Serilog;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Options;
+using EmployeeTime.Configuration;
 
 namespace EmployeeTime.Controllers
 {
@@ -13,12 +15,14 @@ namespace EmployeeTime.Controllers
     public class EmployeesController : ControllerBase, IActionFilter
     {
         private readonly IHttpClientFactory _clientFactory;
+        private readonly IOptions<Config> _config;
         private readonly string[] _validParameters;
         private bool _IdQueryFound;
 
-        public EmployeesController(IHttpClientFactory clientFactory)
+        public EmployeesController(IHttpClientFactory clientFactory, IOptions<Config> config)
         {
             _clientFactory = clientFactory;
+            _config = config;
             _validParameters = new string[] { "search", "filter", "orderby", "top", "skip", "count" };
         }
 
@@ -30,14 +34,16 @@ namespace EmployeeTime.Controllers
                 return BadRequest(new Error("UserId query not found", "404"));
             using (var client = _clientFactory.CreateClient("SapBusinessHub"))
             {
-                string uri = client.BaseAddress + $"/EmployeeTime({externalCode})";
+                client.BaseAddress = new System.Uri(_config.Value.ApiUrl);
+                client.DefaultRequestHeaders.Add("APIKey", _config.Value.ApiKey);
+                string uri = client.BaseAddress + $"({externalCode})";
                 uri += Request.QueryString;
                 var response = client.GetAsync(uri).Result;
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = response.Content;
                     string responseString = responseContent.ReadAsStringAsync().Result;
-                    RootObject JSONWrapper = JsonConvert.DeserializeObject <RootObject>(responseString);
+                    RootObject JSONWrapper = JsonConvert.DeserializeObject<RootObject>(responseString);
                     return Ok(JSONWrapper.TimeSheetWrapper);
                 }
             }
