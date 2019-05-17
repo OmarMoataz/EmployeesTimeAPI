@@ -21,12 +21,11 @@ namespace EmployeeTime
 
         public Startup(IHostingEnvironment env)
         {
-            //Configuration = configuration;
             var builder = new ConfigurationBuilder()
             .SetBasePath(env.ContentRootPath)
+            .AddJsonFile("appsettings.json", false)
             .AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true);
             Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
-
             Configuration = builder.Build();
         }
 
@@ -37,7 +36,7 @@ namespace EmployeeTime
             services.Configure<Config>(Configuration.GetSection("SapConfig"));
             services.AddHttpClient("SapBusinessHub", c =>
             {
-                c.DefaultRequestHeaders.Add("Accept", "application/json");   
+                c.DefaultRequestHeaders.Add("Accept", "application/json");
             });
         }
 
