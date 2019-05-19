@@ -6,24 +6,22 @@ using Serilog;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Options;
 using EmployeeTime.Configuration;
+using System.Linq;
 
 namespace EmployeeTime.Controllers
 {
-    [Produces("application/json")]
     [Route("api/[controller]")]
     [ApiController]
     public class EmployeesController : ControllerBase, IActionFilter
     {
         private readonly IHttpClientFactory _clientFactory;
         private readonly IOptions<Config> _config;
-        private readonly string[] _validParameters;
         private bool _IdQueryFound;
 
         public EmployeesController(IHttpClientFactory clientFactory, IOptions<Config> config)
         {
             _clientFactory = clientFactory;
             _config = config;
-            _validParameters = new string[] { "search", "filter", "orderby", "top", "skip", "count" };
         }
 
         // GET: api/Employee
@@ -41,13 +39,28 @@ namespace EmployeeTime.Controllers
                 var response = client.GetAsync(uri).Result;
                 if (response.IsSuccessStatusCode)
                 {
-                    var responseContent = response.Content;
-                    string responseString = responseContent.ReadAsStringAsync().Result;
+                    string responseString = response.Content.ReadAsStringAsync().Result;
                     RootObject JSONWrapper = JsonConvert.DeserializeObject<RootObject>(responseString);
                     return Ok(JSONWrapper.TimeSheetWrapper);
                 }
             }
             return BadRequest(new Error("Something went wrong"));
+        }
+
+
+        [Route("GetById")]
+        public IActionResult Get(int id)
+        {
+            using (var client = _clientFactory.CreateClient("SapBusinessHub"))
+            {
+                client.BaseAddress = new System.Uri(_config.Value.ApiUrl);
+                client.DefaultRequestHeaders.Add("APIKey", _config.Value.ApiKey);
+                string uri = client.BaseAddress + $"?$filter= userId eq {Request.Query["id"]}";
+                var response = client.GetAsync(uri).Result;
+                string responseString = response.Content.ReadAsStringAsync().Result;
+                RootObject JSONWrapper = JsonConvert.DeserializeObject<RootObject>(responseString);
+                return Ok(JSONWrapper.TimeSheetWrapper);
+            }
         }
 
         public void OnActionExecuted(ActionExecutedContext context)
